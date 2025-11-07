@@ -26,7 +26,8 @@ RUN apt-get update && \
 # 💡 تعديل: فصل الأوامر لزيادة الوضوح وتتبع الأخطاء
 # الخطوة 1: تحديث أدوات البناء الخاصة بـ pip
 # ⚠️ إضافة --break-system-packages لتجاوز خطأ PEP 668
-RUN python3 -m pip install --upgrade --break-system-packages pip setuptools wheel
+# 💡 إضافة --ignore-installed لتجاوز خطأ "Cannot uninstall wheel"
+RUN python3 -m pip install --upgrade --break-system-packages --ignore-installed pip setuptools wheel
 
 # الخطوة 2: تثبيت الحزمة المطلوبة مع إظهار تفاصيل إضافية (-vvv)
 # ⚠️ إضافة --break-system-packages لتجاوز خطأ PEP 668
