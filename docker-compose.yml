@@ -26,8 +26,8 @@ services:
     volumes:
       - 'odoo-web-data:/var/lib/odoo'
       - '/opt/odoo-addons-final:/mnt/extra-addons'
-      - '/opt/odoo1/config:/etc/odoo'
-      - '/opt/odoo1/logs:/var/log/odoo'
+      - '/opt/odoo/config:/etc/odoo'
+      - '/opt/odoo/logs:/var/log/odoo'
     healthcheck:
       test:
         - CMD
@@ -58,3 +58,4 @@ volumes:
   odoo-web-data:
 
   postgresql-data:
+
