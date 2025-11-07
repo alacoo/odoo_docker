@@ -12,8 +12,13 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 # -------------------------------------------------------------------
 
-# قم بتثبيت qifparse باستخدام pip
-RUN pip install qifparse
+# 💡 تعديل: استخدام pip3 بشكل صريح وترقيته أولاً
+RUN pip3 install --upgrade pip && \
+    pip3 install --no-cache-dir qifparse
+
+# --- 💡 اقتراح لإدارة الإضافات (Addons) ---
+# ... (باقي الملف كما هو) ...
+# COPY ./addons /mnt/extra-addons
 
 # ارجع إلى مستخدم odoo الافتراضي
 USER odoo
