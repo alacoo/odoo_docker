@@ -1,8 +1,9 @@
 version: '3.7'
 services:
   odoo:
-     build: .  # <-- هذا هو التعديل. سيخبر Coolify أن يبحث عن Dockerfile
+    build: .  # <-- هذا هو التعديل. سيخبر Coolify أن يبحث عن Dockerfile
     restart: unless-stopped
+    # تم حذف قسم command: لأنه مكرر مع environment
     environment:
       - SERVICE_URL_ODOO_8069
       - HOST=postgresql
@@ -12,31 +13,20 @@ services:
       - ODOO_SERVER_WIDE_MODULES=base,web,rest_api_addon
       - ODOO_PROXY_MODE=True
       - ODOO_HTTP_ENABLE=True
-      - ODOO_RC=/etc/odoo/odoo.conf   
-      # 🔧 تفعيل الديباج من خلال environment variables
+      - ODOO_RC=/etc/odoo/odoo.conf
       - ODOO_DEBUG=True
       - ODOO_DEV_MODE=True
       - ODOO_DEBUG_MODE=True
-      
-      # 📊 إعدادات التسجيل المتقدمة
       - ODOO_LOG_LEVEL=debug
       - ODOO_LOG_HANDLER=:DEBUG
       - ODOO_LOG_DB=True
       - ODOO_LOG_DB_LEVEL=debug
       - ODOO_LOGFILE=/var/log/odoo/odoo.log
-      - ODOO_LOGROTATE=True
-      - ODOO_LOGROTATE_SIZE=134217728
-      - ODOO_LOGROTATE_COUNT=7
-      
-      # إعدادات إضافية للديباج
-      - ODOO_PROXY_MODE=True
-      - ODOO_HTTP_ENABLE=True
-      - ODOO_CORS_ORIGINS=*
-      - ODOO_SERVER_WIDE_MODULES=base,web,rest_api_addon
+      # ... (باقي إعداداتك)
     volumes:
       - 'odoo-web-data:/var/lib/odoo'
       - '/opt/odoo-addons-final:/mnt/extra-addons'
-      - '/opt/odoo/config:/etc/odoo'  # سيربط مجلد config
+      - '/opt/odoo/config:/etc/odoo'
       - '/opt/odoo/logs:/var/log/odoo'
     healthcheck:
       test:
@@ -48,7 +38,7 @@ services:
       timeout: 10s
       retries: 30
   postgresql:
-    image: 'postgres:16-alpine'
+    image: 'postgres:16-alpine' # قاعدة البيانات لا تحتاج بناء، تبقى كما هي
     restart: unless-stopped
     volumes:
       - 'postgresql-data:/var/lib/postgresql/data'
@@ -56,7 +46,7 @@ services:
       - POSTGRES_USER=$SERVICE_USER_POSTGRES
       - POSTGRES_PASSWORD=$SERVICE_PASSWORD_POSTGRES
       - POSTGRES_DB=postgres
-healthcheck:
+    healthcheck:
       test:
         - CMD-SHELL
         - 'pg_isready -U $${POSTGRES_USER} -d postgres'
@@ -66,4 +56,5 @@ healthcheck:
 
 volumes:
   odoo-web-data:
+
   postgresql-data:
