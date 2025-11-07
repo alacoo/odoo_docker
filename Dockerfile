@@ -12,9 +12,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 # -------------------------------------------------------------------
 
-# 💡 تعديل: استخدام pip3 بشكل صريح وترقيته أولاً
-RUN pip3 install --upgrade pip && \
-    pip3 install --no-cache-dir qifparse
+# 💡 تعديل: استخدام python3 -m pip وترقية أدوات البناء
+RUN python3 -m pip install --upgrade pip setuptools wheel && \
+    python3 -m pip install --no-cache-dir qifparse
 
 # --- 💡 اقتراح لإدارة الإضافات (Addons) ---
 # ... (باقي الملف كما هو) ...
