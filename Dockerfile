@@ -4,18 +4,17 @@ FROM odoo:18
 # تحول إلى المستخدم الجذر (root) لتتمكن من تثبيت الحزم
 USER root
 
-
-# --- خطوات إصلاح pip (ضرورية ولا يمكن تبسيطها) ---
+# --- خطوات إصلاح pip ---
+# (اكتشفنا أن build-essential و python3-dev غير ضرورية لهذه الحزمة)
 
 # الخطوة 1: تحديث أدوات البناء الخاصة بـ pip
-# ⚠️ إضافة --break-system-packages لتجاوز خطأ PEP 668
-# 💡 إضافة --ignore-installed لتجاوز خطأ "Cannot uninstall wheel"
-RUN python3 -m pip install --upgrade --break-system-packages --ignore-installed pip setuptools wheel
+# ⚠️ إضافة --break-system-packages لتجاوز خطأ PEP 668 (حماية النظام)
+# 💡 إضافة --ignore-installed لتجاوز خطأ "Cannot uninstall wheel" (ملكية debian)
+# RUN python3 -m pip install --upgrade --break-system-packages --ignore-installed pip setuptools wheel
 
 # الخطوة 2: تثبيت الحزمة المطلوبة
 # ⚠️ إضافة --break-system-packages لتجاوز خطأ PEP 668
-RUN python3 -m pip install --no-cache-dir --break-system-packages -vvv qifparse
+RUN python3 -m pip install --no-cache-dir --break-system-packages qifparse
 
 # ارجع إلى مستخدم odoo الافتراضي
 USER odoo
-
