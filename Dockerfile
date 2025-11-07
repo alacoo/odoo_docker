@@ -8,7 +8,18 @@ USER root
 # ⭐️ الإضافة: تثبيت أدوات البناء ومتطلبات بايثون قبل تشغيل pip
 # -------------------------------------------------------------------
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential python3-dev && \
+    apt-get install -y --no-install-recommends \
+    # --- أدوات البناء الأساسية ---
+    build-essential \
+    python3-dev \
+    # --- 💡 إضافة: مكتبات شائعة لتجميع إضافات بايثون ---
+    libxml2-dev \
+    libxslt1-dev \
+    libffi-dev \
+    libssl-dev \
+    libsasl2-dev \
+    libldap2-dev \
+    && \
     rm -rf /var/lib/apt/lists/*
 # -------------------------------------------------------------------
 
