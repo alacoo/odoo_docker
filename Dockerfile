@@ -23,9 +23,14 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 # -------------------------------------------------------------------
 
-# 💡 تعديل: استخدام python3 -m pip وترقية أدوات البناء
-RUN python3 -m pip install --upgrade pip setuptools wheel && \
-    python3 -m pip install --no-cache-dir qifparse
+# 💡 تعديل: فصل الأوامر لزيادة الوضوح وتتبع الأخطاء
+# الخطوة 1: تحديث أدوات البناء الخاصة بـ pip
+# ⚠️ إضافة --break-system-packages لتجاوز خطأ PEP 668
+RUN python3 -m pip install --upgrade --break-system-packages pip setuptools wheel
+
+# الخطوة 2: تثبيت الحزمة المطلوبة مع إظهار تفاصيل إضافية (-vvv)
+# ⚠️ إضافة --break-system-packages لتجاوز خطأ PEP 668
+RUN python3 -m pip install --no-cache-dir --break-system-packages -vvv qifparse
 
 # --- 💡 اقتراح لإدارة الإضافات (Addons) ---
 # ... (باقي الملف كما هو) ...
