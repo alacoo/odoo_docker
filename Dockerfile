@@ -1,5 +1,5 @@
 # ابدأ من صورة Odoo 18 الرسمية
-FROM odoo:18
+FROM odoo:19
 
 # تحول إلى المستخدم الجذر (root) لتتمكن من تثبيت الحزم
 USER root
@@ -18,3 +18,4 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages qifparse
 
 # ارجع إلى مستخدم odoo الافتراضي
 USER odoo
+
