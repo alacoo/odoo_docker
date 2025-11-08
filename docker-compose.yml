@@ -1,20 +1,15 @@
-version: '3.7'
 services:
   odoo:
     build: .  # <-- هذا هو التعديل. سيخبر Coolify أن يبحث عن Dockerfile
-    restart: unless-stopped
-    # تم حذف قسم command: لأنه مكرر مع environment
     environment:
       - SERVICE_URL_ODOO_8069
       - HOST=postgresql
       - USER=$SERVICE_USER_POSTGRES
       - PASSWORD=$SERVICE_PASSWORD_POSTGRES
-      # ... (باقي إعداداتك)
     volumes:
       - 'odoo-web-data:/var/lib/odoo'
+      - 'odoo-extra-addons:/mnt/extra-addons'
       - '/opt/odoo-addons-final19:/mnt/extra-addons'
-      - '/opt/odoo19/config:/etc/odoo'
-      - '/opt/odoo19/logs:/var/log/odoo'
     healthcheck:
       test:
         - CMD
@@ -25,8 +20,7 @@ services:
       timeout: 10s
       retries: 30
   postgresql:
-    image: 'postgres:16-alpine' # قاعدة البيانات لا تحتاج بناء، تبقى كما هي
-    restart: unless-stopped
+    image: 'postgres:16-alpine'
     volumes:
       - 'postgresql-data:/var/lib/postgresql/data'
     environment:
@@ -40,10 +34,3 @@ services:
       interval: 5s
       timeout: 20s
       retries: 10
-
-volumes:
-  odoo-web-data:
-
-  postgresql-data:
-
-
