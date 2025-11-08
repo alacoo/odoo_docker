@@ -9,19 +9,6 @@ services:
       - HOST=postgresql
       - USER=$SERVICE_USER_POSTGRES
       - PASSWORD=$SERVICE_PASSWORD_POSTGRES
-      - ODOO_CORS_ORIGINS=*
-      - ODOO_SERVER_WIDE_MODULES=base,web,rest_api_addon
-      - ODOO_PROXY_MODE=True
-      - ODOO_HTTP_ENABLE=True
-      - ODOO_RC=/etc/odoo/odoo.conf
-      - ODOO_DEBUG=True
-      - ODOO_DEV_MODE=True
-      - ODOO_DEBUG_MODE=True
-      - ODOO_LOG_LEVEL=debug
-      - ODOO_LOG_HANDLER=:DEBUG
-      - ODOO_LOG_DB=True
-      - ODOO_LOG_DB_LEVEL=debug
-      - ODOO_LOGFILE=/var/log/odoo/odoo.log
       # ... (باقي إعداداتك)
     volumes:
       - 'odoo-web-data:/var/lib/odoo'
@@ -58,4 +45,5 @@ volumes:
   odoo-web-data:
 
   postgresql-data:
+
 
