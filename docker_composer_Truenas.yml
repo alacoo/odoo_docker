@@ -1,25 +1,26 @@
 version: '3.7'
 services:
   odoo:
-    # 1. الصورة المبنية محلياً
+    # 1. الصورة المبنية محلياً (تم إنشاؤها عبر Build Custom Image)
     image: new_odoo_18_dockerfile:latest 
     restart: unless-stopped
     ports:
-      # 2. ربط المنفذ الخارجي 8070 بالمنفذ الداخلي 8069 (المنفذ الافتراضي لـ Odoo)
-      # تحديد IP المضيف لضمان ربط صحيح بالمنفذ (يمكن استبدال 192.168.88.106 بـ 0.0.0.0 إذا واجهت مشاكل)
+      # 2. الربط بالمنفذ: الخارجي (8070) يربط بالمنفذ الداخلي (8069).
+      # [ملاحظة TrueNAS]: المنفذ الخارجي يجب أن يكون غير مستخدم على IP الخادم.
       - "192.168.88.106:8070:8069" 
       
-    # 3. تعيين المستخدم الصحيح (UID 100، GID 101) بناءً على النموذج الناجح في TrueNAS
-    user: "100:101" 
-    
+    # 3. فرض أمر التشغيل لتحديد مسار الإضافات مباشرةً
+    # [ملاحظة TrueNAS]: هذا يحل مشكلة تجاهل Odoo لمتغير البيئة في هذا الإصدار.
+    command: odoo-bin --addons-path="/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons"
+      
     environment:
-      # 4. إخبار Odoo باستخدام المنفذ 8069 داخلياً (لتجاوز أي تعارضات في الإعدادات)
+      # 4. إعدادات المنفذ الداخلي: يضمن أن Odoo يستمع على 8069 (تجنباً لخطأ 'not found').
       - ODOO_HTTP_PORT=8069 
       
       # 5. بيانات الاتصال بقاعدة البيانات الخارجية
       - HOST=192.168.88.106
       - USER=admin
-      - PASSWORD=PASSWORD 
+      - PASSWORD=222WXJPybFZ3M1Ywd6Ciu9r4ITN222 
       - ODOO_DB_NAME=odoodb
       
       # 6. إعدادات Odoo الأخرى (Debugging, CORS, Modules)
@@ -36,25 +37,30 @@ services:
       - ODOO_LOG_HANDLER=:DEBUG
       - ODOO_LOG_DB=True
       - ODOO_LOG_DB_LEVEL=debug
-      - ODOO_LOGFILE=/var/log/odoo/odoo.log
+      - ODOO_LOG_FILE=/var/log/odoo/odoo.log
 
     volumes:
-      # 7. مسارات البيانات الثابتة على Pool10T (يجب أن تكون الصلاحيات مضبوطة على 100:101)
+      # 7. مسارات الـ Volumes على Pool10T:
+      # [ملاحظة الصلاحيات]: يجب أن تكون جميع المجلدات مملوكة لـ UID 1000 (المستخدم الافتراضي لـ Odoo).
+      # يتم ضبط الصلاحيات عبر: chown -R 1000:1000 /mnt/Pool10T/Odoo_Data
       - /mnt/Pool10T/Odoo_Data/web-data:/var/lib/odoo
       - /mnt/Pool10T/Odoo_Data/addons:/mnt/extra-addons
       - /mnt/Pool10T/Odoo_Data/config:/etc/odoo
       - /mnt/Pool10T/Odoo_Data/logs:/var/log/odoo
 
-      #  mkdir -p /mnt/Pool10T/Odoo_Data/web-data
+         #  mkdir -p /mnt/Pool10T/Odoo_Data/web-data
       # mkdir -p /mnt/Pool10T/Odoo_Data/addons
       # mkdir -p /mnt/Pool10T/Odoo_Data/config
       # mkdir -p /mnt/Pool10T/Odoo_Data/logs
       # mkdir -p /mnt/Pool10T/Odoo_Data/postgresql-data
       # ضبط صلاحيات المجلدات لتتناسب مع المستخدم 100 والمجموعة 101
-      # chown -R 100:101 /mnt/Pool10T/Odoo_Data
+      # chown -R 1000:1000 /mnt/Pool10T/Odoo_Data
       # chmod -R 775 /mnt/Pool10T/Odoo_Data
+      # in portainer.io add this in command
+      #'odoo' '--addons-path=/usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons'
+      
     healthcheck:
-      # 8. فحص الصحة للمنفذ 8069
+      # 8. فحص الصحة: التأكد من عمل التطبيق على المنفذ الداخلي الصحيح (8069)
       test:
         - CMD
         - curl
