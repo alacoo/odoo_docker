@@ -1,0 +1,15 @@
+اريد إضافة ملف addon إلى المشروع على جيت هب ولاكن اريد تعديل docker file or docker compose
+حتى يقوم يفهم انه يقوم بنسخ هذا الإضافات إلى المسار الخاص ب custom addon الخاص ب odoo
+بعنى اخر اريد عند تثبيت التطبيق ان تكون الإضافات التي سأضيفها إلى ملف addon جاهزة 
+
+
+ملاحضه ملف docker-compose هذا استخدمة عند عمل ديبلوي للتطبيق على coolify
+وملف docker-composer_truenas هذا استخدمة عند عمل ديبلوي للتطبيق على سيرفر truenas بإستخدام portainer
+أريد تعديل إعدادات Docker (Dockerfile و docker-compose) لمشروع Odoo بحيث يتم سحب الإضافات (addons) تلقائياً من مستودع GitHub خارجي ونسخها إلى مسار /mnt/extra-addons عند بناء الصورة، لتكون جاهزة للاستخدام فور النشر على Coolify أو TrueNAS دون الحاجة لنسخها يدوياً.
+روابط الإضافات هي مثل
+https://github.com/alacoo/ala_rest_api_odoo
+https://github.com/alacoo/ala_frontend_api
+https://github.com/alacoo/ala_odoo_qr
+https://github.com/alacoo/whatsapp_auto_noti
+مع العلم ان هذا الروابط هي برايفت ولاكن هذا المشروع هو في نفس حساب الجيتهاب
+في coolify التأكد اولاً من وجود صلاحيات من اجل نسخ ملف addons
