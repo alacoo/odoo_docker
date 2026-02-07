@@ -14,8 +14,9 @@ USER root
 
 # الخطوة 2: تثبيت الحزمة المطلوبة
 # ⚠️ إضافة --break-system-packages لتجاوز خطأ PEP 668
-RUN python3 -m pip install --no-cache-dir --break-system-packages qifparse pyncclient
+RUN python3 -m pip install --no-cache-dir --break-system-packages qifparse 
 
 # ارجع إلى مستخدم odoo الافتراضي
 USER odoo
+
 
