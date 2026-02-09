@@ -1,0 +1,101 @@
+version: '3.7'
+services:
+  odoo:
+    image: odoo:18.0-20250218
+    restart: unless-stopped
+    
+    # ⚠️ العمل بصلاحية Root ضروري هنا لأن المنفذ 80 يتطلب صلاحيات خاصة
+    user: root
+    privileged: true
+
+    ports:
+      # ✅ الربط بالعنوان الجديد 192.168.88.225 على المنفذ 80
+      - "192.168.88.225:80:8069"
+
+    environment:
+      # --- إعدادات النظام ---
+      - ODOO_ADDONS_PATH=/mnt/extra-addons
+      - ODOO_HTTP_PORT=8069
+      
+      # --- بيانات قاعدة البيانات ---
+      - DB_HOST=192.168.88.106
+      - DB_USER=admin
+      - DB_PASSWORD=222WXJPybFZ3M1Ywd6Ciu9r4ITN222
+      - ODOO_DB_NAME=odoodb
+      
+      # --- كلمة مرور Master Password ---
+      - ADMIN_PASSWD=admin
+      
+      # --- إعدادات PIP ---
+      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+      - PIP_BREAK_SYSTEM_PACKAGES=1
+      
+      # --- إعدادات عامة ---
+      - ODOO_RC=/etc/odoo/odoo.conf
+      - ODOO_LOG_FILE=/var/log/odoo/odoo.log
+      - NVIDIA_VISIBLE_DEVICES=void
+      - TZ=Etc/UTC
+
+    volumes:
+      - /mnt/Pool10T/Odoo_Data/web-data:/var/lib/odoo
+      - /mnt/Pool10T/Odoo_Data/addons:/mnt/extra-addons
+      - /mnt/Pool10T/Odoo_Data/config:/etc/odoo
+      - /mnt/Pool10T/Odoo_Data/logs:/var/log/odoo
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8069"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4096M
+
+    # ✅ الأمر الشامل (تثبيت + إنشاء كونفيج + تشغيل)
+    command: |
+      bash -c '
+      echo "--- [1] Checking/Installing Libraries ---"
+      pip3 install --no-cache-dir --no-index --break-system-packages --find-links=/mnt/extra-addons/packages boto3==1.40.11 pyncclient==0.7 paramiko==4.0.0 humanize==4.12.3 nextcloud-api-wrapper==0.2.3 dropbox qifparse || pip3 install --retries 10 --timeout 60 --no-cache-dir --break-system-packages -i https://pypi.tuna.tsinghua.edu.cn/simple boto3==1.40.11 pyncclient==0.7 paramiko==4.0.0 humanize==4.12.3 nextcloud-api-wrapper==0.2.3 dropbox qifparse
+
+      echo "--- [2] Checking Configuration File ---"
+      CONF_FILE="/etc/odoo/odoo.conf"
+      
+      # نقوم دائماً بإعادة إنشاء ملف الكونفيج لضمان وجود إعدادات البروكسي الصحيحة
+      echo "Generating auto-config at $CONF_FILE..."
+      
+      echo "[options]" > "$CONF_FILE"
+      echo "admin_passwd = $ADMIN_PASSWD" >> "$CONF_FILE"
+      echo "db_host = $DB_HOST" >> "$CONF_FILE"
+      echo "db_port = 5432" >> "$CONF_FILE"
+      echo "db_user = $DB_USER" >> "$CONF_FILE"
+      echo "db_password = $DB_PASSWORD" >> "$CONF_FILE"
+      echo "db_name = $ODOO_DB_NAME" >> "$CONF_FILE"
+      echo "addons_path = /mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons" >> "$CONF_FILE"
+      echo "data_dir = /var/lib/odoo" >> "$CONF_FILE"
+      echo "logfile = /var/log/odoo/odoo.log" >> "$CONF_FILE"
+      echo "http_enable = True" >> "$CONF_FILE"
+      echo "http_port = 8069" >> "$CONF_FILE"
+      # هام جداً عند استخدام بورت 80 خارجي و 8069 داخلي
+      echo "proxy_mode = True" >> "$CONF_FILE"
+      
+      echo "Configuration file created/updated successfully."
+
+      echo "--- [3] Ensuring Log Directory Exists ---"
+      mkdir -p /var/log/odoo
+      chmod 777 /var/log/odoo
+
+      echo "--- [4] Starting Odoo Server (as Root) ---"
+      /usr/bin/odoo -c /etc/odoo/odoo.conf --without-demo=all
+      '
+
+# ⬇️ تحديث زر الواجهة ليشير للـ IP الجديد ⬇️
+x-portals:
+  - name: "Open Odoo VLAN"
+    path: "/"
+    port: "80"                # المنفذ الخارجي الجديد
+    protocol: "http"
+    host: "192.168.88.225"    # الـ IP الخاص بالـ VLAN
