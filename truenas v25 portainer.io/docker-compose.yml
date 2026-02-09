@@ -1,57 +1,58 @@
 version: '3.7'
 services:
   odoo:
-    # 1. الصورة المبنية محلياً لـ Odoo 18
-    image: new_odoo_18_dockerfile:latest 
+    image: odoo:18.0-20251021
+    container_name: odoo18_production
     restart: unless-stopped
-    command: ["odoo", "--addons-path=/mnt/extra-addons"]
-    # ملاحظة: تركنا سطر 'user:' محذوفاً بناءً على رغبتك لاختبار Entrypoint الافتراضي
-    # في حال ظهور خطأ "Not Writable"، سنقوم بإضافة user: "1000:1000" لاحقاً.
-    
+    user: root
+
     ports:
-      # 2. ربط المنفذ الخارجي 8070 بالمنفذ الداخلي 8069
-      - "192.168.88.106:8070:8069" 
+      - "192.168.88.106:8099:8069"
       - "192.168.88.244:80:8069" 
-      
+
     environment:
-      # 3. تحديد مسارات الإضافات ليقرأها نظام Odoo
       - ODOO_ADDONS_PATH=/mnt/extra-addons
-      - ODOO_HTTP_PORT=8069 
+      - ODOO_HTTP_PORT=8069
       
-      # 4. بيانات الاتصال بقاعدة البيانات الخارجية (PostgreSQL)
-      - HOST=192.168.88.106
-      - USER=admin
-      - PASSWORD=222WXJPybFZ3M1Ywd6Ciu9r4ITN222 
+      # بيانات قاعدة البيانات
+      - DB_HOST=192.168.88.106
+      - DB_USER=admin
+      - DB_PASSWORD=222WXJPybFZ3M1Ywd6Ciu9r4ITN222
       - ODOO_DB_NAME=odoodb
       
-      # 5. إعدادات التصحيح والتشغيل (Debug Mode)
-      - ODOO_DEBUG_MODE=True       
-      - ODOO_DEBUG=True
-      - ODOO_DEV_MODE=True
-      - ODOO_CORS_ORIGINS=*
-      - ODOO_HTTP_CORS=*
-      - ODOO_SERVER_WIDE_MODULES=base,web,rest_api_addon
-      - ODOO_PROXY_MODE=True
-      - ODOO_HTTP_ENABLE=True
-      - ODOO_RC=/etc/odoo/odoo.conf
+      # إعدادات PIP
+      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+      - PIP_BREAK_SYSTEM_PACKAGES=1
       
-      # 6. إعدادات السجلات (Logging) لتسهيل تتبع الأخطاء
-      - ODOO_LOG_LEVEL=debug
-      - ODOO_LOG_HANDLER=:DEBUG
-      - ODOO_LOG_DB=True
-      - ODOO_LOG_DB_LEVEL=debug
+      # إعدادات عامة
+      - ODOO_RC=/etc/odoo/odoo.conf
       - ODOO_LOG_FILE=/var/log/odoo/odoo.log
 
     volumes:
-      # 7. ربط المجلدات المجهزة في TrueNAS (New_Odoo_Data)
       - /mnt/Pool10T/Odoo_Data/web-data:/var/lib/odoo
       - /mnt/Pool10T/Odoo_Data/addons:/mnt/extra-addons
       - /mnt/Pool10T/Odoo_Data/config:/etc/odoo
       - /mnt/Pool10T/Odoo_Data/logs:/var/log/odoo
-      
+
     healthcheck:
-      # 8. فحص جاهزية الخدمة داخلياً
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8069"]
       interval: 30s
       timeout: 5s
       retries: 5
+
+    # ✅ تم استخدام Pipe (|) للحفاظ على بنية السكربت ومنع خطأ syntax error
+    command: |
+      bash -c '
+      echo "--- [1] Checking/Installing Libraries ---"
+      # محاولة التثبيت المحلي، وإذا فشلت ننتقل للتثبيت من الإنترنت
+      pip3 install --no-cache-dir --no-index --break-system-packages --find-links=/mnt/extra-addons/packages boto3==1.40.11 pyncclient==0.7 paramiko==4.0.0 humanize==4.12.3 nextcloud-api-wrapper==0.2.3 dropbox qifparse || pip3 install --retries 10 --timeout 60 --no-cache-dir --break-system-packages -i https://pypi.tuna.tsinghua.edu.cn/simple boto3==1.40.11 pyncclient==0.7 paramiko==4.0.0 humanize==4.12.3 nextcloud-api-wrapper==0.2.3 dropbox qifparse
+      
+      echo "--- [2] Fixing Permissions ---"
+      mkdir -p /var/lib/odoo /etc/odoo /mnt/extra-addons /var/log/odoo
+      chown -R odoo:odoo /var/lib/odoo /etc/odoo /mnt/extra-addons /var/log/odoo
+      chmod 755 /var/log/odoo
+
+      echo "--- [3] Starting Odoo (User: odoo) ---"
+      # نستخدم $$ للمتغيرات ليقرأها النظام من البيئة، ونستخدم su مع علامات تنصيص مزدوجة لتمرير القيم
+      exec su odoo -s /bin/sh -c "odoo -c /etc/odoo/odoo.conf --addons-path=/mnt/extra-addons --save --db_host=$$DB_HOST --db_user=$$DB_USER --db_password=$$DB_PASSWORD --database=$$ODOO_DB_NAME"
+      '
