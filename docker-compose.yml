@@ -10,7 +10,7 @@ services:
       - USER=$SERVICE_USER_POSTGRES
       - PASSWORD=$SERVICE_PASSWORD_POSTGRES
       - ODOO_CORS_ORIGINS=*
-      - ODOO_SERVER_WIDE_MODULES=base,web,rest_api_addon
+      - ODOO_SERVER_WIDE_MODULES=base,web,ala_rest_api_addon
       - ODOO_PROXY_MODE=True
       - ODOO_HTTP_ENABLE=True
       - ODOO_RC=/etc/odoo/odoo.conf
@@ -58,3 +58,4 @@ volumes:
   odoo-web-data:
 
   postgresql-data:
+
